@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nation's Finest - Southgate Facility ANS Operations Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #printable-cir-modal, #printable-cir-modal * {
+        visibility: visible !important;
+      }
+      #printable-cir-modal {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        box-shadow: none !important;
+        border: none !important;
+        display: block !important;
+        z-index: 999999 !important;
+      }
+      .cir-print-page {
+        width: 100% !important;
+        border: 2px solid #000 !important;
+        padding: 12px !important;
+        box-sizing: border-box !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+    .cir-table th, .cir-table td {
+      border: 1px solid #1f2937;
+      padding: 4px 6px;
+      font-size: 0.78rem;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased">
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-900 text-white border-b-4 border-amber-500 shadow-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-amber-500 rounded flex items-center justify-center font-black text-slate-950 text-xl tracking-tighter">NF</div>
+        <div>
+          <h1 class="text-lg md:text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            NATION'S FINEST
+            <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">Southgate ANS Portal</span>
+          </h1>
+          <p class="text-xs text-slate-400">7270 E Southgate Blvd, Sacramento, CA 95823 | Facility Night Operations</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-xs">
+        <span class="px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Shift: 12:00 AM - 08:00 AM
+        </span>
+        <span id="current-live-time" class="px-2.5 py-1 rounded bg-slate-800 border border-slate-700 text-amber-300 font-mono font-medium"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <div class="bg-white border-b border-slate-200 shadow-sm sticky top-[62px] z-30">
+    <div class="max-w-7xl mx-auto px-4 flex space-x-2 md:space-x-6 overflow-x-auto text-sm font-medium py-1">
+      <button onclick="switchTab('bed-board')" id="tab-bed-board" class="tab-btn px-3 py-2.5 text-blue-700 border-b-2 border-blue-600 font-semibold flex items-center gap-2">
+        <i class="fa-solid fa-bed"></i> Bed Management (20 Beds)
+      </button>
+      <button onclick="switchTab('med-log')" id="tab-med-log" class="tab-btn px-3 py-2.5 text-slate-600 hover:text-slate-900 border-b-2 border-transparent flex items-center gap-2">
+        <i class="fa-solid fa-pills"></i> Med Observation & MAR
+      </button>
+      <button onclick="switchTab('cir-section')" id="tab-cir-section" class="tab-btn px-3 py-2.5 text-slate-600 hover:text-slate-900 border-b-2 border-transparent flex items-center gap-2">
+        <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Form 1.H.10 Critical Incident Report
+      </button>
+      <button onclick="switchTab('shift-report')" id="tab-shift-report" class="tab-btn px-3 py-2.5 text-slate-600 hover:text-slate-900 border-b-2 border-transparent flex items-center gap-2">
+        <i class="fa-solid fa-clipboard-check"></i> Shift Log & Handover
+      </button>
+    </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+
+    <!-- ========================================== -->
+    <!-- 1. BED MANAGEMENT SECTION -->
+    <!-- ========================================== -->
+    <section id="view-bed-board" class="tab-view block space-y-5">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-emerald-500">
+          <div class="text-xs uppercase text-slate-500 font-semibold">Total Beds</div>
+          <div class="text-2xl font-bold text-slate-800">20</div>
+          <div class="text-[11px] text-slate-400">Southgate Capacity</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+          <div class="text-xs uppercase text-slate-500 font-semibold">Occupied</div>
+          <div id="stat-occupied" class="text-2xl font-bold text-blue-700">17</div>
+          <div class="text-[11px] text-slate-400">In Facility</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-amber-500">
+          <div class="text-xs uppercase text-slate-500 font-semibold">Pass / Hospital</div>
+          <div id="stat-pass" class="text-2xl font-bold text-amber-600">2</div>
+          <div class="text-[11px] text-slate-400">Approved Leave</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-slate-400">
+          <div class="text-xs uppercase text-slate-500 font-semibold">Vacant</div>
+          <div id="stat-vacant" class="text-2xl font-bold text-slate-700">1</div>
+          <div class="text-[11px] text-slate-400">Open Intake Beds</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
+          <div>
+            <h2 class="font-bold text-slate-800 text-base">Facility Night Bed Board & Headcount</h2>
+            <p class="text-xs text-slate-500">Click any bed status to toggle Occupied, On Pass, Hospital, or Vacant</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openNightCountModal()" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-signature"></i> Certify 02:00 AM Count
+            </button>
+          </div>
+        </div>
+        <div id="bed-grid" class="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 2. MEDICATION OBSERVATION & MAR SECTION -->
+    <!-- ========================================== -->
+    <section id="view-med-log" class="tab-view hidden space-y-5">
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+        <div class="flex flex-wrap justify-between items-center gap-4 pb-4 border-b border-slate-200">
+          <div>
+            <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+              <i class="fa-solid fa-pills text-blue-600"></i> Client Medication Administration Record (MAR)
+            </h2>
+            <p class="text-xs text-slate-500">Dynamic client medication profiles, scheduled administration times, and monthly observation tracking</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="mar-client-select" onchange="renderClientMAR()" class="border border-slate-300 rounded px-3 py-1.5 text-xs font-medium bg-white shadow-sm focus:ring-2 focus:ring-blue-500">
+              <!-- populated dynamically -->
+            </select>
+            <button onclick="openAddMedModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold flex items-center gap-1 shadow-sm">
+              <i class="fa-solid fa-plus"></i> Add Regimen
+            </button>
+            <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded text-xs font-semibold flex items-center gap-1 shadow-sm">
+              <i class="fa-solid fa-print"></i> Print Client MAR
+            </button>
+          </div>
+        </div>
+
+        <div id="mar-client-summary" class="mt-4 p-3 bg-slate-50 border border-slate-200 rounded text-xs grid grid-cols-2 md:grid-cols-4 gap-2">
+          <!-- populated dynamically -->
+        </div>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-xs text-left border border-slate-200">
+            <thead class="bg-slate-100 text-slate-700 font-semibold uppercase text-[11px]">
+              <tr>
+                <th class="p-2 border">Medication & Strength</th>
+                <th class="p-2 border">Route & Directions</th>
+                <th class="p-2 border">Scheduled Hour</th>
+                <th class="p-2 border">Tonight's Observation</th>
+                <th class="p-2 border">Staff Initials</th>
+                <th class="p-2 border text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="mar-regimen-tbody" class="divide-y divide-slate-200">
+              <!-- populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 3. FORM 1.H.10 CRITICAL INCIDENT REPORT -->
+    <!-- ========================================== -->
+    <section id="view-cir-section" class="tab-view hidden space-y-6">
+
+      <!-- Header Card with Official Banner -->
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex flex-wrap justify-between items-center gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-amber-500 rounded flex items-center justify-center font-black text-slate-950 text-2xl tracking-tighter">NF</div>
+            <div>
+              <div class="text-xs uppercase tracking-widest text-amber-400 font-bold">Nation's Finest Policy Form 1.H.10</div>
+              <h2 class="text-xl font-black tracking-tight">CRITICAL INCIDENT REPORT INTAKE & GENERATOR</h2>
+              <p class="text-xs text-slate-300">Complete required fields below to route digitally and generate the official 1.H.10 printable report</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="loadSampleCIR()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs rounded font-medium text-amber-300">
+              <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Fill Sample Incident
+            </button>
+            <button type="button" onclick="generateAndPreviewCIR()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded shadow flex items-center gap-1.5">
+              <i class="fa-solid fa-file-pdf"></i> Generate Official Form 1.H.10
+            </button>
+          </div>
+        </div>
+
+        <form id="cir-master-form" class="p-6 space-y-6">
+
+          <!-- HEADER METADATA -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Date of Incident *</label>
+              <input type="date" id="cir_date_incident" required class="w-full border border-slate-300 rounded p-2 bg-white font-medium">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Time of Incident *</label>
+              <input type="time" id="cir_time_incident" required class="w-full border border-slate-300 rounded p-2 bg-white font-medium">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Date of Discovery *</label>
+              <input type="date" id="cir_date_discovery" required class="w-full border border-slate-300 rounded p-2 bg-white font-medium">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Time of Discovery *</label>
+              <input type="time" id="cir_time_discovery" required class="w-full border border-slate-300 rounded p-2 bg-white font-medium">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Person Reporting Incident (Staff Name) *</label>
+              <input type="text" id="cir_person_reporting" value="Marcellus Johnson" required class="w-full border border-slate-300 rounded p-2 bg-white font-medium">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Person(s) Notified of Incident *</label>
+              <input type="text" id="cir_persons_notified" placeholder="e.g., Ronnie Riddle, Site Supervisor on call" required class="w-full border border-slate-300 rounded p-2 bg-white font-medium">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Site Reporting Incident</label>
+              <input type="text" id="cir_site_reporting" value="Southgate Facility" class="w-full border border-slate-300 rounded p-2 bg-white font-medium">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Program Reporting Incident</label>
+              <input type="text" id="cir_program_reporting" value="Transitional Supportive Housing / SITH" class="w-full border border-slate-300 rounded p-2 bg-white font-medium">
+            </div>
+            <div class="md:col-span-2">
+              <label class="block font-bold text-slate-700 mb-1">Location of Incident *</label>
+              <input type="text" id="cir_location" placeholder="e.g., Facility Courtyard / Bed 14 / Front Lobby" required class="w-full border border-slate-300 rounded p-2 bg-white font-medium">
+            </div>
+          </div>
+
+          <!-- SECTION I: TYPE OF INCIDENT -->
+          <div class="border border-slate-200 rounded-lg p-4 bg-white">
+            <h3 class="font-bold text-sm text-slate-900 border-b pb-2 mb-3 flex items-center justify-between">
+              <span>I. Type of Incident <span class="text-xs font-normal text-slate-500">(Check all that apply)</span></span>
+              <span class="text-xs text-amber-700 font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Form 1.H.10 Classifications</span>
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs">
+              <!-- Column 1 -->
+              <div class="space-y-1.5">
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Biohazardous Accident" class="rounded text-blue-600"> <span>Biohazardous Accident</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Elderly (age 60+)/Dependent Adult (18-60) Abuse or Neglect" class="rounded text-blue-600"> <span>Elderly (age 60+)/Dependent Adult (18-60) Abuse or Neglect</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Child Abuse or Neglect" class="rounded text-blue-600"> <span>Child Abuse or Neglect</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded text-red-700 font-semibold"><input type="checkbox" name="cir_type" value="Client Death" class="rounded text-red-600"> <span>Client Death</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="AWOL" class="rounded text-blue-600"> <span>AWOL</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Serious Behavioral Concerns/Psychotic Features" class="rounded text-blue-600"> <span>Serious Behavioral Concerns/Psychotic Features</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded text-red-700 font-semibold"><input type="checkbox" name="cir_type" value="Serious Medical Emergency (911 calls)" class="rounded text-red-600"> <span>Serious Medical Emergency (911 calls)</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Incidents Involving Injury" class="rounded text-blue-600"> <span>Incidents Involving Injury</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Hospitalization" class="rounded text-blue-600"> <span>Hospitalization</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Natural Disaster (Earthquake, Fire, Flood, etc.)" class="rounded text-blue-600"> <span>Natural Disaster (Earthquake, Fire, Flood, etc.)</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Power Outage" class="rounded text-blue-600"> <span>Power Outage</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Mold" class="rounded text-blue-600"> <span>Mold</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Infection Control (TB, Covid, lice, scabies, etc., not common cold or flu)" class="rounded text-blue-600"> <span>Infection Control (TB, Covid, lice, scabies, not cold/flu)</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded text-red-700 font-semibold"><input type="checkbox" name="cir_type" value="Suicidal Behaviors/Ideation (talk)" class="rounded text-red-600"> <span>Suicidal Behaviors/Ideation (talk)</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded text-red-700 font-semibold"><input type="checkbox" name="cir_type" value="Homicidal Behaviors/Ideation (talk)" class="rounded text-red-600"> <span>Homicidal Behaviors/Ideation (talk)</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded text-red-700 font-semibold"><input type="checkbox" name="cir_type" value="Overdose" class="rounded text-red-600"> <span>Overdose</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Falls" class="rounded text-blue-600"> <span>Falls</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Animal Control Issue/Dog Bite" class="rounded text-blue-600"> <span>Animal Control Issue/Dog Bite</span></label>
+                <div class="pt-1 flex items-center gap-2">
+                  <span class="font-medium">Other:</span>
+                  <input type="text" id="cir_type_other" placeholder="please describe other incident type" class="flex-1 border border-slate-300 rounded p-1 text-xs">
+                </div>
+              </div>
+
+              <!-- Column 2 -->
+              <div class="space-y-1.5">
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Medication Errors (i.e., missing, stolen, etc.)" class="rounded text-blue-600"> <span>Medication Errors (missing, stolen, etc.)</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Physical Restraint" class="rounded text-blue-600"> <span>Physical Restraint</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Missing Persons (report filed with PD)" class="rounded text-blue-600"> <span>Missing Persons (report filed with PD)</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Use/Possession of Licit or Illicit Substances" class="rounded text-blue-600"> <span>Use/Possession of Licit or Illicit Substances</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded text-red-700 font-semibold"><input type="checkbox" name="cir_type" value="Use/Possession of Weapons" class="rounded text-red-600"> <span>Use/Possession of Weapons</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Vehicular Accidents" class="rounded text-blue-600"> <span>Vehicular Accidents</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded text-amber-700 font-semibold"><input type="checkbox" name="cir_type" value="Grave Disability (5150 hold)" class="rounded text-amber-600"> <span>Grave Disability (5150 hold)</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded text-red-700 font-semibold"><input type="checkbox" name="cir_type" value="Physical Violence, Aggression or Assault (to Veteran or Staff)" class="rounded text-red-600"> <span>Physical Violence, Aggression or Assault (to Veteran or Staff)</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded text-red-700 font-semibold"><input type="checkbox" name="cir_type" value="Sexual Assault or Sexual Harassment" class="rounded text-red-600"> <span>Sexual Assault or Sexual Harassment</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Welfare Check" class="rounded text-blue-600"> <span>Welfare Check</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Fire (Veteran involved)" class="rounded text-blue-600"> <span>Fire (Veteran involved)</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Pest Control" class="rounded text-blue-600"> <span>Pest Control</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Trespassing" class="rounded text-blue-600"> <span>Trespassing</span></label>
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded"><input type="checkbox" name="cir_type" value="Theft" class="rounded text-blue-600"> <span>Theft</span></label>
+
+                <!-- Emergency Notified Sub-box -->
+                <div class="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded">
+                  <div class="font-bold text-slate-800 mb-1.5">Which of the following were also notified, if any?</div>
+                  <div class="space-y-1">
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="notif_le" class="rounded text-amber-600"> <span>Notification of Law Enforcement</span></label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="notif_ems" class="rounded text-amber-600"> <span>Notification of Emergency Medical Personnel</span></label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="notif_aps" class="rounded text-amber-600"> <span>Notification of APS or CPS</span></label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CLIENT / STAFF INVOLVED TABLE -->
+          <div class="border border-slate-200 rounded-lg p-4 bg-white">
+            <h3 class="font-bold text-sm text-slate-900 border-b pb-2 mb-3">Client / Staff Involved (Check category as applicable)</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border border-slate-200" id="cir-involved-table">
+                <thead class="bg-slate-100 font-semibold">
+                  <tr>
+                    <th class="p-2 border w-1/3">Client / Staff Full Name</th>
+                    <th class="p-2 border text-center">Client</th>
+                    <th class="p-2 border text-center">Family</th>
+                    <th class="p-2 border text-center">Employee</th>
+                    <th class="p-2 border text-center">Visitor</th>
+                    <th class="p-2 border text-center">Other</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  <tr>
+                    <td class="p-1 border"><input type="text" id="inv_name_0" placeholder="Person #1 Name" class="w-full border rounded p-1"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_0" value="Client"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_0" value="Family"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_0" value="Employee"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_0" value="Visitor"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_0" value="Other"></td>
+                  </tr>
+                  <tr>
+                    <td class="p-1 border"><input type="text" id="inv_name_1" placeholder="Person #2 Name" class="w-full border rounded p-1"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_1" value="Client"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_1" value="Family"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_1" value="Employee"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_1" value="Visitor"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_1" value="Other"></td>
+                  </tr>
+                  <tr>
+                    <td class="p-1 border"><input type="text" id="inv_name_2" placeholder="Person #3 Name" class="w-full border rounded p-1"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_2" value="Client"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_2" value="Family"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_2" value="Employee"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_2" value="Visitor"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_2" value="Other"></td>
+                  </tr>
+                  <tr>
+                    <td class="p-1 border"><input type="text" id="inv_name_3" placeholder="Person #4 Name" class="w-full border rounded p-1"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_3" value="Client"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_3" value="Family"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_3" value="Employee"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_3" value="Visitor"></td>
+                    <td class="p-1 border text-center"><input type="radio" name="inv_role_3" value="Other"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SECTIONS II - VI: NARRATIVE FIELDS -->
+          <div class="space-y-4">
+            <div>
+              <label class="block font-bold text-xs text-slate-800 mb-1">II. Information about person(s) involved:</label>
+              <textarea id="cir_sec_ii" rows="2" placeholder="Relevant background, condition, or client specific notes..." class="w-full border border-slate-300 rounded p-2 text-xs"></textarea>
+            </div>
+            <div>
+              <label class="block font-bold text-xs text-slate-800 mb-1">III. Description of Incident (Use Addendum sheet if necessary) *</label>
+              <textarea id="cir_sec_iii" rows="4" required placeholder="Factual chronological description of exactly what happened, observations, statements made..." class="w-full border border-slate-300 rounded p-2 text-xs"></textarea>
+            </div>
+            <div>
+              <label class="block font-bold text-xs text-slate-800 mb-1">IV. Description of Action Taken at Time of Incident *</label>
+              <textarea id="cir_sec_iv" rows="3" required placeholder="Immediate de-escalation, first aid rendered, emergency services contacted, staff support provided..." class="w-full border border-slate-300 rounded p-2 text-xs"></textarea>
+            </div>
+            <div>
+              <label class="block font-bold text-xs text-slate-800 mb-1">V. Follow Up Plans/Recommendations:</label>
+              <textarea id="cir_sec_v" rows="2" placeholder="Case management referral, clinical follow-up, room inspection, monitoring plan..." class="w-full border border-slate-300 rounded p-2 text-xs"></textarea>
+            </div>
+            <div>
+              <label class="block font-bold text-xs text-slate-800 mb-1">VI. List All Persons Present at Time of Incident:</label>
+              <input type="text" id="cir_sec_vi" placeholder="Staff names, residents, responding officers/paramedics badge numbers..." class="w-full border border-slate-300 rounded p-2 text-xs">
+            </div>
+          </div>
+
+          <!-- ROUTING & SIGNATURE METADATA -->
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-3">
+            <div class="font-bold text-slate-800 border-b pb-1">Signatures & Administrative Verification</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Person Reporting (Digital Signature)</label>
+                <input type="text" id="cir_sig_staff" value="Marcellus Johnson" class="w-full border rounded p-1.5 font-semibold bg-white">
+                <span class="text-[10px] text-slate-400">Date auto-stamps on generation</span>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Site Director Review</label>
+                <input type="text" id="cir_sig_director" placeholder="Pending Review" readonly class="w-full border rounded p-1.5 bg-slate-100 text-slate-500">
+                <span class="text-[10px] text-slate-400">Routing Queue Approval</span>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Chief Operations Officer</label>
+                <input type="text" id="cir_sig_coo" placeholder="Pending Executive Sign-off" readonly class="w-full border rounded p-1.5 bg-slate-100 text-slate-500">
+                <span class="text-[10px] text-slate-400">Escalated Sign-off</span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4 pt-2">
+              <span class="font-bold text-slate-800">MUI (Major Unusual Incident):</span>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="cir_mui" value="No" checked> <span>No</span></label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="cir_mui" value="Yes"> <span class="text-red-700 font-semibold">Yes</span></label>
+              <input type="text" id="cir_mui_comments" placeholder="MUI Comments if applicable" class="flex-1 border rounded p-1 text-xs">
+            </div>
+            <p class="text-[11px] text-amber-800 bg-amber-50 p-2 rounded border border-amber-200 font-medium">
+              <i class="fa-solid fa-clock mr-1"></i> Policy Requirement: Please submit completed Critical Incident Report with a Supervisor’s signature to the Administration Manager or designee within <strong>24 HOURS</strong> of the date of discovery.
+            </p>
+          </div>
+
+          <!-- SUBMIT & GENERATE ACTIONS -->
+          <div class="flex flex-wrap justify-between items-center gap-3 pt-2">
+            <span class="text-xs text-slate-500">Form will validate required fields and generate the official 1.H.10 layout</span>
+            <div class="flex gap-2">
+              <button type="button" onclick="saveCIRToRoster()" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded text-xs font-semibold shadow flex items-center gap-1.5">
+                <i class="fa-solid fa-floppy-disk"></i> Save & Route to Supervisor
+              </button>
+              <button type="button" onclick="generateAndPreviewCIR()" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold text-xs rounded shadow flex items-center gap-1.5">
+                <i class="fa-solid fa-file-invoice"></i> View Official Printable Form 1.H.10
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- PAST LOGGED INCIDENTS ROSTER -->
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+        <h3 class="font-bold text-sm text-slate-800 mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-slate-600"></i> Active Shift Incident Reports & Routing Status
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left border border-slate-200">
+            <thead class="bg-slate-100 font-semibold">
+              <tr>
+                <th class="p-2 border">Report ID</th>
+                <th class="p-2 border">Date / Time</th>
+                <th class="p-2 border">Location</th>
+                <th class="p-2 border">Primary Types</th>
+                <th class="p-2 border">Routing Status</th>
+                <th class="p-2 border text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="cir-roster-tbody" class="divide-y divide-slate-200">
+              <!-- populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 4. SHIFT LOG & HANDOVER SECTION -->
+    <!-- ========================================== -->
+    <section id="view-shift-report" class="tab-view hidden space-y-5">
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <div>
+            <h2 class="font-bold text-slate-900 text-base">Southgate Awake Night Staff (ANS) Shift Handover</h2>
+            <p class="text-xs text-slate-500">Overnight facility walkthrough verification, environmental checks, and relief staff communication</p>
+          </div>
+          <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 text-white rounded text-xs font-semibold">
+            <i class="fa-solid fa-print mr-1"></i> Print Master Shift Packet
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="space-y-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Outgoing ANS Staff On Duty</label>
+              <input type="text" value="Marcellus Johnson, Ronnie Riddle" class="w-full border rounded p-2 bg-slate-50">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Incoming Morning Relief Staff</label>
+              <input type="text" placeholder="e.g., Elaine Ho" class="w-full border rounded p-2">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Hourly Safety Rounds Verification (01:00 AM - 07:00 AM)</label>
+              <div class="grid grid-cols-4 gap-2 pt-1">
+                <label class="flex items-center gap-1.5 p-1 bg-slate-50 rounded border"><input type="checkbox" checked> 01:00 AM</label>
+                <label class="flex items-center gap-1.5 p-1 bg-slate-50 rounded border"><input type="checkbox" checked> 02:00 AM</label>
+                <label class="flex items-center gap-1.5 p-1 bg-slate-50 rounded border"><input type="checkbox" checked> 03:00 AM</label>
+                <label class="flex items-center gap-1.5 p-1 bg-slate-50 rounded border"><input type="checkbox" checked> 04:00 AM</label>
+                <label class="flex items-center gap-1.5 p-1 bg-slate-50 rounded border"><input type="checkbox" checked> 05:00 AM</label>
+                <label class="flex items-center gap-1.5 p-1 bg-slate-50 rounded border"><input type="checkbox" checked> 06:00 AM</label>
+                <label class="flex items-center gap-1.5 p-1 bg-slate-50 rounded border"><input type="checkbox" checked> 07:00 AM</label>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Facility / Security Observations</label>
+              <textarea rows="3" class="w-full border rounded p-2 text-xs" placeholder="All perimeter gates locked; exterior lighting checked; facility quiet..."></textarea>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Morning Handover Instructions</label>
+              <textarea rows="3" class="w-full border rounded p-2 text-xs" placeholder="Veterans with early medical transports; medication delivery pending..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================= -->
+  <!-- MODAL: EXACT OFFICIAL FORM 1.H.10 DOCUMENT GENERATOR -->
+  <!-- ======================================================= -->
+  <div id="printable-cir-modal" class="hidden fixed inset-0 z-50 bg-slate-900/70 overflow-y-auto p-4 md:p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-2xl border border-slate-300 overflow-hidden text-black font-sans leading-tight">
+      
+      <!-- Top Action Bar (hidden when printing) -->
+      <div class="no-print bg-slate-800 text-white px-6 py-3 flex justify-between items-center border-b border-slate-700">
+        <div class="flex items-center gap-2 text-sm font-semibold text-amber-400">
+          <i class="fa-solid fa-file-circle-check"></i> Official Form 1.H.10 Document Generated
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.print()" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs shadow flex items-center gap-1">
+            <i class="fa-solid fa-print"></i> Print Official Form 1.H.10
+          </button>
+          <button onclick="closeCIRModal()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-semibold">
+            Close
+          </button>
+        </div>
+      </div>
+
+      <!-- THE OFFICIAL 1.H.10 FORM BODY (EXACT REPLICA) -->
+      <div class="cir-print-page p-6 text-slate-900 bg-white">
+        
+        <!-- Header Banner & Logo -->
+        <div class="flex justify-between items-center border-b-2 border-black pb-3 mb-2">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 border-2 border-black flex flex-col justify-center items-center font-black text-xs leading-none">
+              <span>★</span>
+              <span>NF</span>
+            </div>
+            <div>
+              <h1 class="text-2xl font-black tracking-wider text-slate-900">NATION'S FINEST</h1>
+              <p class="text-[10px] uppercase font-bold tracking-widest text-slate-700">Veterans & Family Supportive Services</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <h2 class="text-xl font-bold tracking-tight text-slate-900">Critical Incident Report</h2>
+            <div class="text-[11px] font-semibold text-slate-600">Form 1.H.10 (Rev. 3/20/25)</div>
+          </div>
+        </div>
+
+        <!-- Top Metadata Matrix -->
+        <table class="w-full cir-table mb-2">
+          <tr>
+            <td class="font-bold w-1/4 bg-slate-100">Date of Incident:</td>
+            <td id="p_date_incident" class="w-1/4 font-mono font-medium"></td>
+            <td class="font-bold w-1/4 bg-slate-100">Time of Incident:</td>
+            <td id="p_time_incident" class="w-1/4 font-mono font-medium"></td>
+          </tr>
+          <tr>
+            <td class="font-bold bg-slate-100">Date of Discovery:</td>
+            <td id="p_date_discovery" class="font-mono font-medium"></td>
+            <td class="font-bold bg-slate-100">Time of Discovery:</td>
+            <td id="p_time_discovery" class="font-mono font-medium"></td>
+          </tr>
+          <tr>
+            <td class="font-bold bg-slate-100">Person Reporting Incident:</td>
+            <td id="p_person_reporting" colspan="1" class="font-semibold"></td>
+            <td class="font-bold bg-slate-100">Person(s) Notified:</td>
+            <td id="p_persons_notified" colspan="1"></td>
+          </tr>
+          <tr>
+            <td class="font-bold bg-slate-100">Site Reporting Incident:</td>
+            <td id="p_site_reporting"></td>
+            <td class="font-bold bg-slate-100">Program Reporting:</td>
+            <td id="p_program_reporting"></td>
+          </tr>
+          <tr>
+            <td class="font-bold bg-slate-100">Location of Incident:</td>
+            <td id="p_location" colspan="3" class="font-semibold"></td>
+          </tr>
+        </table>
+
+        <!-- Section I: Type of Incident -->
+        <div class="border border-black p-2 mb-2">
+          <div class="font-bold text-xs uppercase bg-slate-200 px-1 py-0.5 border border-black mb-1">
+            I. Type of Incident (Check all that apply)
+          </div>
+          <div class="grid grid-cols-2 gap-x-4 text-[10px] leading-tight" id="p_incident_types_box">
+            <!-- Checkbox states populated here -->
+          </div>
+          <div class="mt-1 pt-1 border-t border-slate-300 text-[10px] font-semibold" id="p_other_notified_line">
+            <!-- Emergency notifications -->
+          </div>
+        </div>
+
+        <!-- Client / Staff Involved Table -->
+        <div class="mb-2">
+          <div class="font-bold text-[11px] bg-slate-200 px-1 py-0.5 border border-black border-b-0">
+            Client / Staff Involved:
+          </div>
+          <table class="w-full cir-table">
+            <thead>
+              <tr class="bg-slate-100 text-[10px]">
+                <th class="w-1/3">Client / Staff Name</th>
+                <th class="text-center">Client</th>
+                <th class="text-center">Family</th>
+                <th class="text-center">Employee</th>
+                <th class="text-center">Visitor</th>
+                <th class="text-center">Other</th>
+              </tr>
+            </thead>
+            <tbody id="p_involved_tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Section II to VI Narratives -->
+        <div class="space-y-1.5 text-xs mb-2">
+          <div class="border border-black p-1.5">
+            <div class="font-bold text-[10px] uppercase text-slate-700">II. Information about person(s) involved:</div>
+            <div id="p_sec_ii" class="text-[11px] min-h-[22px] whitespace-pre-wrap font-sans"></div>
+          </div>
+          <div class="border border-black p-1.5">
+            <div class="font-bold text-[10px] uppercase text-slate-700">III. Description of Incident (Use Addendum sheet if necessary):</div>
+            <div id="p_sec_iii" class="text-[11px] min-h-[48px] whitespace-pre-wrap font-sans"></div>
+          </div>
+          <div class="border border-black p-1.5">
+            <div class="font-bold text-[10px] uppercase text-slate-700">IV. Description of Action Taken at Time of Incident:</div>
+            <div id="p_sec_iv" class="text-[11px] min-h-[38px] whitespace-pre-wrap font-sans"></div>
+          </div>
+          <div class="border border-black p-1.5">
+            <div class="font-bold text-[10px] uppercase text-slate-700">V. Follow Up Plans/Recommendations:</div>
+            <div id="p_sec_v" class="text-[11px] min-h-[26px] whitespace-pre-wrap font-sans"></div>
+          </div>
+          <div class="border border-black p-1.5">
+            <div class="font-bold text-[10px] uppercase text-slate-700">VI. List All Persons Present at Time of Incident:</div>
+            <div id="p_sec_vi" class="text-[11px] min-h-[20px] font-sans"></div>
+          </div>
+        </div>
+
+        <!-- Signatures & Routing Table -->
+        <table class="w-full cir-table mb-1">
+          <thead>
+            <tr class="bg-slate-100 font-bold text-[10px]">
+              <th class="w-1/2">Signatures</th>
+              <th class="w-1/2">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Person Reporting Incident: <span id="p_sig_reporting" class="font-semibold underline ml-1"></span></td>
+              <td id="p_sig_date_reporting" class="font-mono"></td>
+            </tr>
+            <tr>
+              <td>Site Director: <span id="p_sig_director" class="italic text-slate-600 ml-1">Pending Approval</span></td>
+              <td id="p_sig_date_director" class="font-mono text-slate-500">Pending</td>
+            </tr>
+            <tr>
+              <td>Chief Operations Officer: <span id="p_sig_coo" class="italic text-slate-600 ml-1">Pending Approval</span></td>
+              <td id="p_sig_date_coo" class="font-mono text-slate-500">Pending</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- MUI & Policy Footer -->
+        <div class="border border-black p-1 text-[10px] flex justify-between items-center mb-1 bg-slate-50">
+          <div>
+            <span class="font-bold mr-2">MUI:</span>
+            <span>Yes <span id="p_mui_yes" class="border border-black px-1 font-mono font-bold"></span></span>
+            <span class="ml-3">No <span id="p_mui_no" class="border border-black px-1 font-mono font-bold">X</span></span>
+          </div>
+          <div>
+            <span class="font-bold">Comments:</span> <span id="p_mui_comments" class="italic">None</span>
+          </div>
+        </div>
+
+        <div class="text-[9px] text-center italic text-slate-700 font-medium">
+          Please submit completed Critical Incident Report with a Supervisor’s signature to the Administration Manager or designee within 24 HOURS of the date of discovery.
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT STATE & CIR GENERATOR LOGIC -->
+  <script>
+    // System Data State
+    const clients = [
+      { id: 'C01', name: 'Cadena, John', bed: 'Bed 01', intake: '2026-06-12', allergies: 'Penicillin', meds: [
+        { name: 'Aripiprazole (Abilify)', dose: '5 mg PO', time: '20:00 (Evening)', instructions: 'Take with food for mood stability' },
+        { name: 'Cholecalciferol (Vitamin D3)', dose: '2000 IU PO', time: '08:00 (Morning)', instructions: 'Daily supplement' }
+      ]},
+      { id: 'C02', name: 'Carr, Lisa', bed: 'Bed 02', intake: '2026-07-04', allergies: 'Sulfa Drugs', meds: [
+        { name: 'Duloxetine (Cymbalta)', dose: '30 mg PO', time: '08:00 (Morning)', instructions: 'Take with water; do not crush' },
+        { name: 'Colestipol (Colestid)', dose: '1 g PO', time: '20:00 (Evening)', instructions: 'Space 2 hrs from other meds' }
+      ]},
+      { id: 'C03', name: 'Croissant, Joseph', bed: 'Bed 03', intake: '2026-08-11', allergies: 'NKDA', meds: [
+        { name: 'Acetaminophen (Tylenol)', dose: '500 mg PO', time: 'PRN (As Needed)', instructions: 'Max 3000mg/24hr for pain' },
+        { name: 'Diclofenac (Voltaren Gel 1%)', dose: '4 g Topical', time: '20:00 (Evening)', instructions: 'Apply to right knee' }
+      ]},
+      { id: 'C04', name: 'Sylke, Nicholas', bed: 'Bed 04', intake: '2026-05-20', allergies: 'Aspirin', meds: [
+        { name: 'Gabapentin (Neurontin)', dose: '300 mg PO', time: '20:00 (Evening)', instructions: 'Take at bedtime for nerve pain' },
+        { name: 'Hydroxyzine (Vistaril)', dose: '25 mg PO', time: '22:00 (Bedtime)', instructions: 'Take as needed for severe anxiety' }
+      ]},
+      { id: 'C05', name: 'Taws, Tyler', bed: 'Bed 05', intake: '2026-09-01', allergies: 'Codeine', meds: [
+        { name: 'Bupropion (Wellbutrin)', dose: '150 mg PO', time: '08:00 (Morning)', instructions: 'Take in morning' },
+        { name: 'Buspirone (Buspar)', dose: '10 mg PO', time: '20:00 (Evening)', instructions: 'Twice daily regimen' }
+      ]},
+      { id: 'C06', name: 'Xiong, Namber', bed: 'Bed 06', intake: '2026-08-25', allergies: 'NKDA', meds: [
+        { name: 'Atorvastatin (Lipitor)', dose: '20 mg PO', time: '20:00 (Evening)', instructions: 'Take at bedtime' },
+        { name: 'Aspirin (81 mg)', dose: '81 mg PO', time: '08:00 (Morning)', instructions: 'Cardioprotective low dose' }
+      ]}
+    ];
+
+    let incidentRoster = [
+      {
+        id: 'CIR-2026-089',
+        date: '2026-11-01',
+        time: '02:30',
+        discoveryDate: '2026-11-01',
+        discoveryTime: '02:32',
+        personReporting: 'Marcellus Johnson',
+        personsNotified: 'Ronnie Riddle, Site Supervisor on call',
+        site: 'Southgate Facility',
+        program: 'Transitional Supportive Housing',
+        location: 'West Courtyard Walkway',
+        types: ['Falls', 'Serious Medical Emergency (911 calls)'],
+        notifiedServices: ['Notification of Emergency Medical Personnel'],
+        involved: [{ name: 'Sylke, Nicholas', role: 'Client' }],
+        secII: 'Resident has documented diabetic neuropathy and gait instability.',
+        secIII: 'Staff heard a thud during 02:30 safety walkthrough. Resident tripped over courtyard uneven concrete lip while returning from designated smoking area. Complained of right hip and ankle pain.',
+        secIV: 'Staff immediately responded, advised resident not to move, conducted initial vitals check (BP 128/82, alert & oriented x4). Called 911 for EMS evaluation. Paramedics arrived 02:44.',
+        secV: 'Follow-up with primary care case manager regarding physical therapy mobility walker; maintenance to inspect and mark walkway edge.',
+        secVI: 'Marcellus Johnson (ANS), Ronnie Riddle (ANS), Metro Fire Medic Engine 56',
+        mui: 'No',
+        muiComments: '',
+        status: 'Supervisor Review Pending'
+      }
+    ];
+
+    // Initialize Page
+    document.addEventListener('DOMContentLoaded', () => {
+      updateClock();
+      setInterval(updateClock, 1000);
+      initDefaults();
+      renderBeds();
+      renderClientSelect();
+      renderClientMAR();
+      renderCIRRoster();
+    });
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('current-live-time').innerText = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+    }
+
+    function initDefaults() {
+      const today = new Date().toISOString().split('T')[0];
+      const nowTime = new Date().toTimeString().slice(0, 5);
+      
+      document.getElementById('cir_date_incident').value = today;
+      document.getElementById('cir_time_incident').value = nowTime;
+      document.getElementById('cir_date_discovery').value = today;
+      document.getElementById('cir_time_discovery').value = nowTime;
+    }
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(v => v.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('text-blue-700', 'border-blue-600', 'font-semibold');
+        b.classList.add('text-slate-600', 'border-transparent');
+      });
+
+      document.getElementById('view-' + tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-' + tabId);
+      activeBtn.classList.add('text-blue-700', 'border-blue-600', 'font-semibold');
+      activeBtn.classList.remove('text-slate-600', 'border-transparent');
+    }
+
+    // Bed Grid
+    function renderBeds() {
+      const grid = document.getElementById('bed-grid');
+      grid.innerHTML = '';
+      for (let i = 1; i <= 20; i++) {
+        const bedNum = 'Bed ' + (i < 10 ? '0' + i : i);
+        const client = clients.find(c => c.bed === bedNum);
+        let status = client ? 'Occupied' : (i === 19 ? 'On Pass' : (i === 20 ? 'Vacant' : 'Occupied'));
+        let badgeColor = status === 'Occupied' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                         (status === 'On Pass' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-slate-100 text-slate-600 border-slate-300');
+
+        const card = document.createElement('div');
+        card.className = "border rounded-lg p-3 bg-white shadow-sm flex flex-col justify-between hover:border-blue-400 transition";
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="font-black text-slate-800 text-xs">${bedNum}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded border font-semibold ${badgeColor}">${status}</span>
+            </div>
+            <div class="text-xs font-bold text-slate-900 truncate">${client ? client.name : (status === 'Vacant' ? '<span class="text-slate-400 italic">Open Bed</span>' : 'Veteran Resident')}</div>
+            <div class="text-[11px] text-slate-500">${client ? 'Allergies: ' + client.allergies : 'Standard Roster'}</div>
+          </div>
+          <button onclick="toggleBedStatus(this)" class="mt-2 text-[10px] text-blue-600 hover:text-blue-800 font-semibold text-right">
+            Change Status &rarr;
+          </button>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    function toggleBedStatus(btn) {
+      const card = btn.closest('div');
+      const badge = card.querySelector('span:nth-child(2)');
+      const statuses = ['Occupied', 'On Pass', 'Hospital', 'Vacant'];
+      let current = badge.innerText;
+      let next = statuses[(statuses.indexOf(current) + 1) % statuses.length];
+      badge.innerText = next;
+      badge.className = `text-[10px] px-2 py-0.5 rounded border font-semibold ` + 
+        (next === 'Occupied' ? 'bg-blue-100 text-blue-800 border-blue-300' : 
+        (next === 'On Pass' ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-slate-100 text-slate-600 border-slate-300'));
+    }
+
+    // Medication MAR Logic
+    function renderClientSelect() {
+      const select = document.getElementById('mar-client-select');
+      select.innerHTML = '';
+      clients.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.innerText = `${c.name} (${c.bed})`;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderClientMAR() {
+      const clientId = document.getElementById('mar-client-select').value;
+      const client = clients.find(c => c.id === clientId) || clients[0];
+      
+      const summary = document.getElementById('mar-client-summary');
+      summary.innerHTML = `
+        <div><span class="text-slate-500">Client Name:</span> <span class="font-bold text-slate-800">${client.name}</span></div>
+        <div><span class="text-slate-500">Bed:</span> <span class="font-bold text-slate-800">${client.bed}</span></div>
+        <div><span class="text-slate-500">Intake Date:</span> <span class="font-bold text-slate-800">${client.intake}</span></div>
+        <div><span class="text-slate-500">Documented Allergies:</span> <span class="font-bold text-red-600">${client.allergies}</span></div>
+      `;
+
+      const tbody = document.getElementById('mar-regimen-tbody');
+      tbody.innerHTML = '';
+      client.meds.forEach((m, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50";
+        tr.innerHTML = `
+          <td class="p-2 border font-bold text-slate-800">${m.name}</td>
+          <td class="p-2 border">${m.dose} - ${m.instructions}</td>
+          <td class="p-2 border font-semibold text-blue-700">${m.time}</td>
+          <td class="p-2 border">
+            <select class="border rounded p-1 text-xs">
+              <option>Observed / Taken</option>
+              <option>Self-Administered</option>
+              <option>Refused</option>
+              <option>Not Available</option>
+            </select>
+          </td>
+          <td class="p-2 border"><input type="text" value="MJ" maxlength="4" class="w-12 border rounded text-center font-bold uppercase p-0.5"></td>
+          <td class="p-2 border text-center">
+            <button onclick="dcMed(${idx})" class="text-red-600 hover:text-red-800 font-semibold text-[11px]">Discontinue</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function dcMed(idx) {
+      if (confirm('Discontinue this order on the client record?')) {
+        const clientId = document.getElementById('mar-client-select').value;
+        const client = clients.find(c => c.id === clientId);
+        client.meds.splice(idx, 1);
+        renderClientMAR();
+      }
+    }
+
+    function openAddMedModal() {
+      const medName = prompt("Enter medication name and strength (e.g. Amlodipine 10mg PO):");
+      if (!medName) return;
+      const time = prompt("Enter scheduled administration time (e.g. 08:00 (Morning) or 20:00 (Evening)):", "20:00 (Evening)");
+      const instructions = prompt("Enter special instructions or indications:", "Take with water as directed");
+      const clientId = document.getElementById('mar-client-select').value;
+      const client = clients.find(c => c.id === clientId);
+      client.meds.push({ name: medName, dose: 'As prescribed', time: time || 'PRN', instructions: instructions || 'Standard regimen' });
+      renderClientMAR();
+      alert("Medication added to client MAR record.");
+    }
+
+    function openNightCountModal() {
+      const occupied = document.getElementById('stat-occupied').innerText;
+      const pass = document.getElementById('stat-pass').innerText;
+      const vacant = document.getElementById('stat-vacant').innerText;
+      const staffSig = prompt(`Certify 02:00 AM Night Headcount:\nOccupied: ${occupied} | Pass/Hospital: ${pass} | Vacant: ${vacant}\n\nEnter your digital initials / signature:`, "Marcellus Johnson");
+      if (staffSig) {
+        alert(`02:00 AM Headcount successfully certified and signed by ${staffSig}. Timestamped in shift ledger.`);
+      }
+    }
+
+    // CIR Logic
+    function loadSampleCIR() {
+      document.getElementById('cir_date_incident').value = '2026-11-02';
+      document.getElementById('cir_time_incident').value = '01:15';
+      document.getElementById('cir_date_discovery').value = '2026-11-02';
+      document.getElementById('cir_time_discovery').value = '01:15';
+      document.getElementById('cir_person_reporting').value = 'Marcellus Johnson';
+      document.getElementById('cir_persons_notified').value = 'Ronnie Riddle (ANS Staff), On-Call Supervisor';
+      document.getElementById('cir_site_reporting').value = 'Southgate Facility';
+      document.getElementById('cir_program_reporting').value = 'Transitional Supportive Housing';
+      document.getElementById('cir_location').value = 'Room 14 / Courtyard Hallway';
+      
+      // Uncheck all types first
+      document.querySelectorAll('input[name="cir_type"]').forEach(cb => cb.checked = false);
+      
+      // Check sample types
+      const typesToCheck = ['Serious Behavioral Concerns/Psychotic Features', 'Welfare Check'];
+      document.querySelectorAll('input[name="cir_type"]').forEach(cb => {
+        if (typesToCheck.includes(cb.value)) cb.checked = true;
+      });
+
+      document.getElementById('notif_ems').checked = false;
+      document.getElementById('notif_le').checked = false;
+      document.getElementById('notif_aps').checked = false;
+
+      document.getElementById('inv_name_0').value = 'Sylke, Nicholas';
+      const rad = document.querySelector('input[name="inv_role_0"][value="Client"]');
+      if (rad) rad.checked = true;
+
+      document.getElementById('cir_sec_ii').value = 'Veteran has history of service-connected insomnia and acute anxiety flare-ups.';
+      document.getElementById('cir_sec_iii').value = 'During 01:15 safety rounds, resident was pacing hallway in heightened agitated state, expressing auditory hallucinations and stating he felt unsafe in his room. ANS staff engaged resident calmly using verbal de-escalation techniques.';
+      document.getElementById('cir_sec_iv').value = 'Provided seated area in quiet consultation space. Offered water and assisted veteran in utilizing grounding techniques. ANS staff verified vitals and remained present until veteran reported feeling centered. Veteran returned safely to bed at 02:00.';
+      document.getElementById('cir_sec_v').value = 'Recommend morning case manager check-in and referral to VA mental health clinician for med review.';
+      document.getElementById('cir_sec_vi').value = 'Marcellus Johnson (ANS), Ronnie Riddle (ANS)';
+    }
+
+    // FORM 1.H.10 GENERATOR & PREVIEW
+    function generateAndPreviewCIR() {
+      // Collect all inputs
+      const dateInc = document.getElementById('cir_date_incident').value || 'N/A';
+      const timeInc = document.getElementById('cir_time_incident').value || 'N/A';
+      const dateDisc = document.getElementById('cir_date_discovery').value || 'N/A';
+      const timeDisc = document.getElementById('cir_time_discovery').value || 'N/A';
+      const reporting = document.getElementById('cir_person_reporting').value || 'Staff';
+      const notified = document.getElementById('cir_persons_notified').value || 'Supervisor';
+      const site = document.getElementById('cir_site_reporting').value || 'Southgate Facility';
+      const program = document.getElementById('cir_program_reporting').value || 'Supportive Housing';
+      const location = document.getElementById('cir_location').value || 'Facility Grounds';
+
+      // Populate Modal Metadata
+      document.getElementById('p_date_incident').innerText = dateInc;
+      document.getElementById('p_time_incident').innerText = timeInc;
+      document.getElementById('p_date_discovery').innerText = dateDisc;
+      document.getElementById('p_time_discovery').innerText = timeDisc;
+      document.getElementById('p_person_reporting').innerText = reporting;
+      document.getElementById('p_persons_notified').innerText = notified;
+      document.getElementById('p_site_reporting').innerText = site;
+      document.getElementById('p_program_reporting').innerText = program;
+      document.getElementById('p_location').innerText = location;
+
+      // Populate Incident Types Matrix
+      const allTypes = [
+        'Biohazardous Accident', 'Medication Errors (i.e., missing, stolen, etc.)',
+        'Elderly (age 60+)/Dependent Adult (18-60) Abuse or Neglect', 'Physical Restraint',
+        'Child Abuse or Neglect', 'Missing Persons (report filed with PD)',
+        'Client Death', 'Use/Possession of Licit or Illicit Substances',
+        'AWOL', 'Use/Possession of Weapons',
+        'Serious Behavioral Concerns/Psychotic Features', 'Vehicular Accidents',
+        'Serious Medical Emergency (911 calls)', 'Grave Disability (5150 hold)',
+        'Incidents Involving Injury', 'Physical Violence, Aggression or Assault (to Veteran or Staff)',
+        'Hospitalization', 'Sexual Assault or Sexual Harassment',
+        'Natural Disaster (Earthquake, Fire, Flood, etc.)', 'Welfare Check',
+        'Power Outage', 'Fire (Veteran involved)',
+        'Mold', 'Pest Control',
+        'Infection Control (TB, Covid, lice, scabies, not cold/flu)', 'Trespassing',
+        'Suicidal Behaviors/Ideation (talk)', 'Theft',
+        'Homicidal Behaviors/Ideation (talk)', 'Overdose',
+        'Falls', 'Animal Control Issue/Dog Bite'
+      ];
+
+      const selectedTypes = Array.from(document.querySelectorAll('input[name="cir_type"]:checked')).map(cb => cb.value);
+      const otherTypeVal = document.getElementById('cir_type_other').value.trim();
+
+      const typeContainer = document.getElementById('p_incident_types_box');
+      typeContainer.innerHTML = '';
+      allTypes.forEach(t => {
+        const isChecked = selectedTypes.includes(t);
+        const div = document.createElement('div');
+        div.className = "flex items-center gap-1.5 py-0.5 " + (isChecked ? "font-bold text-black" : "text-slate-600");
+        div.innerHTML = `<span>[${isChecked ? 'X' : '&nbsp;'}]</span> <span>${t}</span>`;
+        typeContainer.appendChild(div);
+      });
+
+      if (otherTypeVal) {
+        const div = document.createElement('div');
+        div.className = "col-span-2 font-bold text-black pt-1";
+        div.innerHTML = `<span>[X] Other:</span> <span class="underline">${otherTypeVal}</span>`;
+        typeContainer.appendChild(div);
+      }
+
+      // Emergency Notifications
+      const le = document.getElementById('notif_le').checked;
+      const ems = document.getElementById('notif_ems').checked;
+      const aps = document.getElementById('notif_aps').checked;
+      document.getElementById('p_other_notified_line').innerHTML = `
+        <span class="mr-2">Which of the following were also notified, if any:</span>
+        <span class="mr-3 font-semibold">[${le ? 'X' : '&nbsp;'}] Law Enforcement</span>
+        <span class="mr-3 font-semibold">[${ems ? 'X' : '&nbsp;'}] Emergency Medical Personnel</span>
+        <span class="font-semibold">[${aps ? 'X' : '&nbsp;'}] APS or CPS</span>
+      `;
+
+      // Involved Persons Table
+      const invTbody = document.getElementById('p_involved_tbody');
+      invTbody.innerHTML = '';
+      for (let r = 0; r < 4; r++) {
+        const nameVal = document.getElementById('inv_name_' + r).value.trim();
+        const role = document.querySelector(`input[name="inv_role_${r}"]:checked`)?.value || '';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="font-medium">${nameVal || '&nbsp;'}</td>
+          <td class="text-center font-mono font-bold">${role === 'Client' ? 'X' : ''}</td>
+          <td class="text-center font-mono font-bold">${role === 'Family' ? 'X' : ''}</td>
+          <td class="text-center font-mono font-bold">${role === 'Employee' ? 'X' : ''}</td>
+          <td class="text-center font-mono font-bold">${role === 'Visitor' ? 'X' : ''}</td>
+          <td class="text-center font-mono font-bold">${role === 'Other' ? 'X' : ''}</td>
+        `;
+        invTbody.appendChild(tr);
+      }
+
+      // Narratives
+      document.getElementById('p_sec_ii').innerText = document.getElementById('cir_sec_ii').value || 'None documented.';
+      document.getElementById('p_sec_iii').innerText = document.getElementById('cir_sec_iii').value || 'No narrative provided.';
+      document.getElementById('p_sec_iv').innerText = document.getElementById('cir_sec_iv').value || 'None documented.';
+      document.getElementById('p_sec_v').innerText = document.getElementById('cir_sec_v').value || 'None documented.';
+      document.getElementById('p_sec_vi').innerText = document.getElementById('cir_sec_vi').value || 'None documented.';
+
+      // Signatures
+      document.getElementById('p_sig_reporting').innerText = document.getElementById('cir_sig_staff').value;
+      document.getElementById('p_sig_date_reporting').innerText = dateDisc;
+
+      // MUI
+      const muiVal = document.querySelector('input[name="cir_mui"]:checked')?.value || 'No';
+      document.getElementById('p_mui_yes').innerText = muiVal === 'Yes' ? 'X' : ' ';
+      document.getElementById('p_mui_no').innerText = muiVal === 'No' ? 'X' : ' ';
+      document.getElementById('p_mui_comments').innerText = document.getElementById('cir_mui_comments').value || 'None';
+
+      // Open Modal
+      document.getElementById('printable-cir-modal').classList.remove('hidden');
+    }
+
+    function closeCIRModal() {
+      document.getElementById('printable-cir-modal').classList.add('hidden');
+    }
+
+    function saveCIRToRoster() {
+      const reporting = document.getElementById('cir_person_reporting').value;
+      const dateInc = document.getElementById('cir_date_incident').value;
+      const timeInc = document.getElementById('cir_time_incident').value;
+      const location = document.getElementById('cir_location').value;
+      const selectedTypes = Array.from(document.querySelectorAll('input[name="cir_type"]:checked')).map(cb => cb.value);
+
+      if (!location || selectedTypes.length === 0) {
+        alert('Please specify the Location and check at least one Type of Incident.');
+        return;
+      }
+
+      const newId = 'CIR-2026-' + Math.floor(100 + Math.random() * 900);
+      incidentRoster.unshift({
+        id: newId,
+        date: dateInc,
+        time: timeInc,
+        location: location,
+        types: selectedTypes,
+        status: selectedTypes.includes('Serious Medical Emergency (911 calls)') || selectedTypes.includes('Overdose') ? 'URGENT: Director Escalated' : 'Supervisor Review Pending'
+      });
+
+      renderCIRRoster();
+      alert(`Report ${newId} submitted and routed successfully! You can now view or print the official Form 1.H.10.`);
+    }
+
+    function renderCIRRoster() {
+      const tbody = document.getElementById('cir-roster-tbody');
+      tbody.innerHTML = '';
+      incidentRoster.forEach(inc => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50";
+        const isUrgent = inc.status.includes('URGENT');
+        tr.innerHTML = `
+          <td class="p-2 border font-bold text-slate-800">${inc.id}</td>
+          <td class="p-2 border">${inc.date} ${inc.time}</td>
+          <td class="p-2 border">${inc.location}</td>
+          <td class="p-2 border"><span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-800">${inc.types[0] || 'Incident'}</span></td>
+          <td class="p-2 border"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${isUrgent ? 'bg-red-100 text-red-700 border border-red-300' : 'bg-amber-100 text-amber-800 border border-amber-300'}">${inc.status}</span></td>
+          <td class="p-2 border text-center">
+            <button onclick="generateAndPreviewCIR()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-900 text-amber-300 rounded text-[11px] font-semibold">
+              <i class="fa-solid fa-file-pdf mr-1"></i> Form 1.H.10
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>
